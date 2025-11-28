@@ -9,13 +9,23 @@ import {
   Put,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { EncuestaService } from './encuesta.service';
 import { CreateEncuestaDto } from './dto/create-encuesta.dto';
 import { UpdateEncuestaDto } from './dto/update-encuesta.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Encuestas')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('encuestas')
 export class EncuestaController {
   constructor(private readonly encuestaService: EncuestaService) {}
@@ -44,7 +54,10 @@ export class EncuestaController {
   }
 
   @Get('public/:empresaId/:encuestaId')
-  @ApiOperation({ summary: 'Acceder a encuesta pública (HU6)' })
+  @Public()
+  @ApiOperation({
+    summary: 'Acceder a encuesta pública sin autenticación (HU6)',
+  })
   @ApiResponse({ status: 200, description: 'Encuesta disponible' })
   @ApiResponse({ status: 400, description: 'Encuesta cerrada o no disponible' })
   findByUrlPublica(

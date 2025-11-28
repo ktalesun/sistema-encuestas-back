@@ -19,6 +19,9 @@ start: ## Iniciar en producción
 lint: ## Ejecutar linter
 	pnpm run lint
 
+seed: ## Poblar base de datos con datos de prueba
+	pnpm run seed
+
 db-up: ## Levantar base de datos PostgreSQL
 	docker-compose up -d postgres
 	@echo "Esperando a que PostgreSQL esté listo..."

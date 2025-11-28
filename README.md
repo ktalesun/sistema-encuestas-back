@@ -41,12 +41,31 @@ API REST para gestión de encuestas y análisis de resultados, desarrollada con 
   - Generación automática de URL pública
   - Formato: `/encuestas/public/{empresa_id}/{encuesta_id}`
 
-### ✅ Épica 3: Respuestas
-- **HU7**: Almacenamiento de Respuestas
-  - Validación de vigencia
-  - Almacenamiento en JSON
-  - Timestamp automático
-  - Datos de terceros opcionales
+### ✅ Épica 3: Enlaces Públicos sin Autenticación
+- **HU6**: Acceso Público a Encuestas
+  - URL sin autenticación JWT
+  - Formato: `/encuestas/public/{empresa_id}/{encuesta_id}`
+  - Validación de vigencia y estado
+
+- **HU7**: Envío de Respuestas Públicas
+  - Envío sin autenticación
+  - Validación de encuesta vigente
+  - Almacenamiento con timestamp
+  
+### ✅ Épica 4: Módulo de Reportes y Análisis
+- **HU8**: Tabulación y Estadísticas
+  - Tabulación automática de respuestas
+  - Cálculo de frecuencias y porcentajes
+  - Filtros por empresa, encuesta y fechas
+  - Exportación a Excel (.xlsx)
+  - Exportación a PDF
+  - API JSON para integración
+  
+### ✅ Gestión de Roles y Permisos
+- CRUD completo de roles
+- Gestión dinámica de permisos
+- Endpoints para agregar/remover permisos
+- Validación de usuarios asignados antes de eliminar rol
 
 ## 📋 Requisitos Previos
 
@@ -123,6 +142,7 @@ pnpm run start:prod
 make help        # Ver todos los comandos
 make install     # Instalar dependencias
 make dev         # Desarrollo con DB
+make seed        # Poblar base de datos
 make db-up       # Levantar PostgreSQL
 make db-down     # Detener PostgreSQL
 make db-reset    # Reiniciar DB (elimina datos)
@@ -140,6 +160,37 @@ La aplicación estará disponible en:
 ./check-setup.sh
 ```
 
+## 🌱 Poblar Base de Datos (Seeds)
+
+El proyecto incluye un seeder con datos de prueba:
+
+```bash
+# Ejecutar seeder
+pnpm run seed
+# O: make seed
+```
+
+**Datos creados:**
+- 3 Roles (Administrador, Editor, Visualizador)
+- 2 Empresas (Tech Solutions, Innovación Digital)
+- 3 Usuarios con diferentes permisos
+- 2 Encuestas de ejemplo publicadas
+
+**Credenciales de prueba:**
+```
+Administrador:
+  Email: admin@techsolutions.com
+  Password: Admin123!
+
+Editor:
+  Email: juan@techsolutions.com
+  Password: Editor123!
+
+Visualizador:
+  Email: maria@innovacion.com
+  Password: Viewer123!
+```
+
 ## 📊 Base de Datos - Tablas Creadas
 
 TypeORM sincroniza automáticamente estas entidades:
@@ -152,9 +203,65 @@ TypeORM sincroniza automáticamente estas entidades:
 
 ## 📚 Documentación API
 
+La API está documentada con Swagger en: **http://localhost:3000/api**
+
+### 🔓 Endpoints Públicos (Sin Autenticación)
+
+Los siguientes endpoints **NO requieren** token JWT:
+
+#### 1. Login
+```bash
+POST /auth/login
+{
+  "email": "admin@techsolutions.com",
+  "password": "Admin123!"
+}
+```
+
+#### 2. Ver Encuesta Pública (HU6)
+```bash
+GET /encuestas/public/{empresa_id}/{encuesta_id}
+```
+
+**Respuesta:**
+```json
+{
+  "id": "uuid",
+  "titulo": "Encuesta de Satisfacción 2025",
+  "descripcion": "Medir satisfacción del cliente",
+  "fecha_inicio": "2025-01-01",
+  "fecha_fin": "2025-12-31",
+  "estado": "publicada",
+  "url_publica": "/encuestas/public/{empresa_id}/{encuesta_id}",
+  "preguntas": [...]
+}
+```
+
+#### 3. Enviar Respuesta Pública (HU7)
+```bash
+POST /respuestas
+{
+  "encuesta_id": "uuid-de-encuesta",
+  "respuestas": [...],
+  "terceros": {
+    "nombre": "Juan Pérez",
+    "email": "juan@cliente.com"
+  }
+}
+```
+
+---
+
+### 🔐 Endpoints Protegidos (Requieren JWT)
+
+Todos los demás endpoints requieren el header:
+```bash
+Authorization: Bearer {token}
+```
+
 ### Autenticación
 
-#### Login
+#### Login (Público - No requiere JWT)
 ```bash
 POST /auth/login
 {
@@ -204,6 +311,25 @@ POST /usuarios
 }
 ```
 
+### Roles
+
+#### Crear Rol
+```bash
+POST /roles
+{
+  "nombre": "Administrador",
+  "permisos": ["usuarios.crear", "usuarios.editar", "encuestas.ver"]
+}
+```
+
+#### Agregar Permiso a Rol
+```bash
+PATCH /roles/{id}/permisos/add
+{
+  "permiso": "encuestas.crear"
+}
+```
+
 ### Encuestas
 
 #### Crear Encuesta
@@ -240,14 +366,14 @@ POST /encuestas
 POST /encuestas/{id}/duplicar
 ```
 
-#### Acceder a Encuesta Pública
+#### Acceder a Encuesta Pública (Sin JWT - HU6)
 ```bash
 GET /encuestas/public/{empresa_id}/{encuesta_id}
 ```
 
 ### Respuestas
 
-#### Enviar Respuesta
+#### Enviar Respuesta (Sin JWT - HU7)
 ```bash
 POST /respuestas
 {
@@ -269,6 +395,69 @@ POST /respuestas
 GET /respuestas?encuesta_id=uuid-de-encuesta
 ```
 
+### Reportes
+
+#### Obtener Estadísticas y Tabulación (HU8)
+```bash
+GET /reportes/estadisticas
+GET /reportes/estadisticas?encuesta_id=uuid
+GET /reportes/estadisticas?empresa_id=uuid&fecha_inicio=2025-01-01&fecha_fin=2025-12-31
+```
+
+**Respuesta:**
+```json
+[
+  {
+    "encuesta_id": "uuid",
+    "titulo": "Encuesta de Satisfacción 2025",
+    "total_respuestas": 150,
+    "fecha_inicio": "2025-01-01",
+    "fecha_fin": "2025-12-31",
+    "preguntas": [
+      {
+        "pregunta_id": "uuid",
+        "pregunta_texto": "¿Cómo califica el servicio?",
+        "tipo": "opcion_unica",
+        "total_respuestas": 150,
+        "respuestas": [
+          {
+            "valor": "Excelente",
+            "frecuencia": 80,
+            "porcentaje": 53.33
+          },
+          {
+            "valor": "Bueno",
+            "frecuencia": 50,
+            "porcentaje": 33.33
+          },
+          {
+            "valor": "Regular",
+            "frecuencia": 20,
+            "porcentaje": 13.33
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+#### Exportar a Excel (HU8)
+```bash
+GET /reportes/exportar/excel
+GET /reportes/exportar/excel?encuesta_id=uuid
+GET /reportes/exportar/excel?empresa_id=uuid&fecha_inicio=2025-01-01&fecha_fin=2025-12-31
+```
+Descarga: `reporte_encuestas_2025-11-28.xlsx`
+
+#### Exportar a PDF (HU8)
+```bash
+GET /reportes/exportar/pdf
+GET /reportes/exportar/pdf?encuesta_id=uuid
+GET /reportes/exportar/pdf?empresa_id=uuid&fecha_inicio=2025-01-01
+```
+Descarga: `reporte_encuestas_2025-11-28.pdf`
+
 ## 🏗️ Estructura del Proyecto
 
 ```
@@ -279,13 +468,17 @@ src/
 │   ├── guards/          # JwtAuthGuard
 │   ├── interceptors/
 │   └── filters/
+├── database/
+│   └── seeds/          # Seeders de datos de prueba
 └── modules/
     ├── empresa/         # Gestión de licencias
     ├── usuario/         # Gestión de usuarios
+    ├── rol/             # Gestión de roles y permisos
     ├── auth/            # Autenticación JWT
     ├── encuesta/        # CRUD de encuestas
     ├── pregunta/        # Tipos de preguntas
-    └── respuesta/       # Almacenamiento de respuestas
+    ├── respuesta/       # Almacenamiento de respuestas
+    └── reporte/         # Estadísticas y exportación
 ```
 
 ## 🔐 Autenticación
@@ -302,14 +495,24 @@ Authorization: Bearer <token>
 - **Swagger**: Documentación automática en `/api`
 - **Estados de Encuesta**: borrador → publicada → inactiva/archivada
 
-## 🎯 Próximas Implementaciones
+## 🎯 Características Completadas
 
-- [ ] Módulo de Reportes (HU8)
-- [ ] Exportación Excel/PDF
-- [ ] Gráficos estadísticos
-- [ ] Filtros avanzados
-- [ ] Integración WhatsApp
-- [ ] Acortador de URLs
+✅ **Épica 1**: Gestión completa de empresas, usuarios y autenticación JWT  
+✅ **Épica 2**: Administración de encuestas con 5 tipos de preguntas  
+✅ **Épica 3**: Enlaces públicos sin autenticación para respuestas  
+✅ **Épica 4**: Módulo de reportes con tabulación y exportación Excel/PDF  
+✅ **Extra**: Sistema completo de roles y permisos dinámicos  
+✅ **Extra**: Docker Compose con PostgreSQL y PgAdmin  
+✅ **Extra**: Seeder de datos de prueba  
+
+## 🚀 Posibles Mejoras Futuras
+
+- Integración con WhatsApp para envío de encuestas
+- Acortador de URLs personalizado
+- Gráficos estadísticos interactivos en el frontend
+- Sistema de notificaciones por email
+- Exportación de reportes con gráficos embebidos
+- API de webhooks para integraciones externas
 
 ## 👥 Autores
 

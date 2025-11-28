@@ -10,8 +10,10 @@ import jwtConfig from './config/jwt.config';
 import { EmpresaModule } from './modules/empresa/empresa.module';
 import { UsuarioModule } from './modules/usuario/usuario.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RolModule } from './modules/rol/rol.module';
 import { EncuestaModule } from './modules/encuesta/encuesta.module';
 import { RespuestaModule } from './modules/respuesta/respuesta.module';
+import { ReporteModule } from './modules/reporte/reporte.module';
 
 @Module({
   imports: [
@@ -33,8 +35,10 @@ import { RespuestaModule } from './modules/respuesta/respuesta.module';
     EmpresaModule,
     UsuarioModule,
     AuthModule,
+    RolModule,
     EncuestaModule,
     RespuestaModule,
+    ReporteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,15 +1,36 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { RespuestaService } from './respuesta.service';
 import { CreateRespuestaDto } from './dto/create-respuesta.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Respuestas')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('respuestas')
 export class RespuestaController {
   constructor(private readonly respuestaService: RespuestaService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Enviar respuesta a encuesta (HU7)' })
+  @Public()
+  @ApiOperation({
+    summary: 'Enviar respuesta a encuesta pública sin autenticación (HU7)',
+  })
   @ApiResponse({ status: 201, description: 'Respuesta almacenada' })
   @ApiResponse({ status: 400, description: 'Encuesta cerrada' })
   create(@Body() createRespuestaDto: CreateRespuestaDto) {
