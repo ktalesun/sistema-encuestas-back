@@ -287,8 +287,8 @@ export class ReporteService {
         doc.moveDown();
         doc.fontSize(12);
         doc.text(`Total de respuestas: ${stats.total_respuestas}`);
-        doc.text(`Fecha inicio: ${stats.fecha_inicio.toLocaleDateString()}`);
-        doc.text(`Fecha fin: ${stats.fecha_fin.toLocaleDateString()}`);
+        doc.text(`Fecha inicio: ${new Date(stats.fecha_inicio).toLocaleDateString()}`);
+        doc.text(`Fecha fin: ${new Date(stats.fecha_fin).toLocaleDateString()}`);
         doc.moveDown(2);
 
         // Por cada pregunta
