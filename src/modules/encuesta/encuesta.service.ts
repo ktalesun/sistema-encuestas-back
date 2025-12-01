@@ -205,7 +205,22 @@ export class EncuestaService {
   }
 
   async remove(id: string): Promise<void> {
-    const encuesta = await this.findOne(id);
+    const encuesta = await this.encuestaRepository.findOne({
+      where: { id_encuesta: id },
+      relations: ['respuestas', 'preguntas'],
+    });
+
+    if (!encuesta) {
+      throw new NotFoundException('Encuesta no encontrada');
+    }
+
+    // Verificar si tiene respuestas
+    if (encuesta.respuestas && encuesta.respuestas.length > 0) {
+      throw new BadRequestException(
+        `No se puede eliminar la encuesta porque tiene ${encuesta.respuestas.length} respuesta(s) asociada(s). Considere archivarla en su lugar.`,
+      );
+    }
+
     await this.encuestaRepository.remove(encuesta);
   }
 
