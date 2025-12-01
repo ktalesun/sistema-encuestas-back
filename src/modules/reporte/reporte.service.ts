@@ -50,7 +50,7 @@ export class ReporteService {
     const whereConditions: any = {};
 
     if (filtros.encuesta_id) {
-      whereConditions.encuesta = { id: filtros.encuesta_id };
+      whereConditions.encuesta_id = filtros.encuesta_id;
     }
 
     if (filtros.fecha_inicio && filtros.fecha_fin) {
@@ -127,12 +127,23 @@ export class ReporteService {
       // Recopilar todas las respuestas para esta pregunta
       for (const respuesta of respuestas) {
         const respuestasJson = respuesta.respuestas_json as any;
-        if (respuestasJson && Array.isArray(respuestasJson)) {
-          const respPregunta = respuestasJson.find(
-            (r: any) => r.pregunta_id === pregunta.id_pregunta,
-          );
-          if (respPregunta?.respuesta !== undefined) {
-            respuestasPregunta.push(respPregunta.respuesta);
+        
+        if (respuestasJson) {
+          // Soportar tanto formato objeto como array
+          if (Array.isArray(respuestasJson)) {
+            // Formato array: [{ pregunta_id: "xxx", respuesta: "valor" }]
+            const respPregunta = respuestasJson.find(
+              (r: any) => r.pregunta_id === pregunta.id_pregunta,
+            );
+            if (respPregunta?.respuesta !== undefined) {
+              respuestasPregunta.push(respPregunta.respuesta);
+            }
+          } else if (typeof respuestasJson === 'object') {
+            // Formato objeto: { "pregunta_id": "valor" }
+            const valor = respuestasJson[pregunta.id_pregunta];
+            if (valor !== undefined && valor !== null) {
+              respuestasPregunta.push(valor);
+            }
           }
         }
       }
