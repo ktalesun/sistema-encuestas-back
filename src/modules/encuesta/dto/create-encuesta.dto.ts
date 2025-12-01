@@ -6,9 +6,17 @@ import {
   IsOptional,
   IsArray,
   ValidateNested,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+
+export enum EstadoEncuesta {
+  BORRADOR = 'borrador',
+  PUBLICADA = 'publicada',
+  INACTIVA = 'inactiva',
+  ARCHIVADA = 'archivada',
+}
 
 class CreatePreguntaDto {
   @ApiProperty({ example: '¿Cómo calificaría nuestro servicio?' })
@@ -68,6 +76,16 @@ export class CreateEncuestaDto {
   @IsUUID()
   @IsNotEmpty()
   empresa_id: string;
+
+  @ApiProperty({
+    example: 'borrador',
+    enum: ['borrador', 'publicada', 'inactiva', 'archivada'],
+    required: false,
+    description: 'Estado de la encuesta. Por defecto: borrador',
+  })
+  @IsEnum(EstadoEncuesta)
+  @IsOptional()
+  estado?: string;
 
   @ApiProperty({ type: [CreatePreguntaDto], required: false })
   @IsArray()
