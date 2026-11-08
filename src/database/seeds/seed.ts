@@ -5,6 +5,12 @@ import { EmpresaService } from '../../modules/empresa/empresa.service';
 import { UsuarioService } from '../../modules/usuario/usuario.service';
 import { EncuestaService } from '../../modules/encuesta/encuesta.service';
 
+function fechaEnAnios(anios: number): string {
+  const fecha = new Date();
+  fecha.setFullYear(fecha.getFullYear() + anios);
+  return fecha.toISOString().slice(0, 10);
+}
+
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
@@ -56,7 +62,7 @@ async function seed() {
       nombre: 'Tech Solutions S.A.S.',
       nit: '900123456-1',
       fecha_inicio: '2025-01-01',
-      fecha_expiracion: '2026-01-01',
+      fecha_expiracion: fechaEnAnios(2),
       estado: 'activa',
     });
     console.log(`✅ Empresa creada: ${empresa1.nombre}`);
@@ -65,7 +71,7 @@ async function seed() {
       nombre: 'Innovación Digital Ltda.',
       nit: '900987654-2',
       fecha_inicio: '2025-01-01',
-      fecha_expiracion: '2025-12-31',
+      fecha_expiracion: fechaEnAnios(1),
       estado: 'activa',
     });
     console.log(`✅ Empresa creada: ${empresa2.nombre}\n`);
@@ -106,7 +112,7 @@ async function seed() {
       descripcion:
         'Encuesta para medir el nivel de satisfacción de nuestros clientes',
       fecha_inicio: '2025-01-01',
-      fecha_fin: '2025-12-31',
+      fecha_fin: fechaEnAnios(1),
       empresa_id: empresa1.id_empresa,
       preguntas: [
         {
@@ -145,7 +151,7 @@ async function seed() {
       titulo: 'Evaluación de Producto',
       descripcion: 'Evaluación de nuestros productos y servicios',
       fecha_inicio: '2025-06-01',
-      fecha_fin: '2025-12-31',
+      fecha_fin: fechaEnAnios(1),
       empresa_id: empresa2.id_empresa,
       preguntas: [
         {
