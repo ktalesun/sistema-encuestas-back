@@ -3,11 +3,8 @@ services:
     image: postgres:16-alpine
     container_name: sistema-encuestas-db
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-      POSTGRES_DB: sistema_encuestas
-      POSTGRES_HOST_AUTH_METHOD: trust
+    env_file:
+      - .env.prod
     ports:
       - '5432:5432'
     volumes:
@@ -18,24 +15,45 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build: .
+    container_name: sistema-encuestas-api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    env_file:
+      - .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: sistema-encuestas-pgadmin
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    env_file:
+      - .env.prod
     ports:
       - '5050:80'
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
     driver: local
   pgadmin_data:
     driver: local
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
