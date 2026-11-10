@@ -85,41 +85,64 @@ make install
 
 ## 🐳 Docker (Configuración Completa)
 
-**Ver [DOCKER.md](./DOCKER.md) para guía completa de Docker.**
+Este servicio (backend) se levanta con Docker Compose junto con PostgreSQL y pgAdmin. Para la guía detallada ver [DOCKER.md](./DOCKER.md).
 
-El proyecto incluye Docker Compose para PostgreSQL y PgAdmin:
+| Servicio | Imagen | Puerto |
+|----------|--------|--------|
+| `backend` | Dockerfile propio (`node:20-alpine`, multi-stage) | 3001 |
+| `postgres` | `postgres:16-alpine` | 5432 |
+| `pgadmin` | `dpage/pgadmin4:8.14` | 5050 |
+
+Todos comparten la red `app-network` y se comunican por **nombre de servicio** (el backend usa `DB_HOST=postgres`).
+
+### Levantar el backend completo
 
 ```bash
-# Levantar PostgreSQL
-docker-compose up -d postgres
+# 1. Crear el archivo de variables (NO se sube al repositorio) y editar las contraseñas
+cp .env.prod.example .env.prod
 
-# O usar el Makefile
-make db-up
+# 2. Construir las imágenes y levantar los contenedores
+docker compose up -d --build
 
-# Ver logs
-docker-compose logs -f postgres
-
-# Detener
-docker-compose down
+# 3. Verificar
+docker compose ps
+docker compose logs -f backend
 ```
 
-**Acceso a PostgreSQL:**
-- Host: `localhost`
-- Puerto: `5432`
-- Usuario: `postgres`
-- Password: `postgres123`
-- Database: `sistema_encuestas`
+- API: http://localhost:3001
+- Swagger: http://localhost:3001/api
+- pgAdmin: http://localhost:5050 (credenciales en `.env.prod`)
 
-**PgAdmin (opcional):**
+### Levantar el frontend (segundo repositorio)
+
+El compose del frontend se une a la red `app-network`, que crea este compose, por lo que **primero se levanta el backend** y luego el frontend (ver el README de `Encuesthik_Frontend`). La aplicación queda en http://localhost:3000.
+
+### Verificar la comunicación entre contenedores
+
 ```bash
-# Levantar PgAdmin
-docker-compose up -d pgadmin
-# O: make pgadmin
-
-# Acceder a http://localhost:5050
-# Email: admin@admin.com
-# Password: admin123
+docker network inspect app-network
+docker exec -it sistema-encuestas-db psql -U postgres -d sistema_encuestas -c '\dt'
 ```
+
+### Detener
+
+```bash
+docker compose down        # conserva los datos
+docker compose down -v     # elimina también los volúmenes
+```
+
+### Solo base de datos (desarrollo local)
+
+```bash
+make db-up        # o: docker compose up -d postgres
+pnpm run start:dev
+```
+
+Las credenciales se definen en `.env` / `.env.prod`, que están en `.gitignore`. Use `.env.example` y `.env.prod.example` como plantilla.
+
+### Integración continua
+
+El workflow `.github/workflows/docker-build.yml` construye la imagen del backend en cada *push* y *pull request*.
 
 ## 🚀 Ejecución
 
