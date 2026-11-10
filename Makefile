@@ -39,7 +39,7 @@ db-reset: ## Reiniciar base de datos (elimina datos)
 pgadmin: ## Levantar PgAdmin
 	docker-compose up -d pgadmin
 	@echo "PgAdmin disponible en http://localhost:5050"
-	@echo "Email: admin@admin.com | Password: admin123"
+	@echo "Credenciales: PGADMIN_DEFAULT_EMAIL y PGADMIN_DEFAULT_PASSWORD en .env.prod"
 
 stop: ## Detener todos los contenedores
 	docker-compose down

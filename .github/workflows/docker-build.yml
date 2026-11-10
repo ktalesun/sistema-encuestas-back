@@ -1,0 +1,31 @@
+name: Docker build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-backend:
+    name: Construir imagen del backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Preparar variables de entorno (plantilla, sin secretos reales)
+        run: cp .env.prod.example .env.prod
+
+      - name: Validar docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir imagen (sin publicar)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: sistema-encuestas-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
