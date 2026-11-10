@@ -10,7 +10,7 @@
 - **Imagen**: `postgres:16-alpine`
 - **Puerto**: `5432`
 - **Usuario**: `postgres`
-- **Password**: `postgres123`
+- **Password**: `<DB_PASSWORD definido en tu .env>`
 - **Base de datos**: `sistema_encuestas`
 - **Healthcheck**: Activo
 - **Volumen**: `postgres_data` (persistente)
@@ -19,7 +19,7 @@
 - **Puerto**: `5050`
 - **URL**: http://localhost:5050
 - **Email**: `admin@admin.com`
-- **Password**: `admin123`
+- **Password**: `<PGADMIN_DEFAULT_PASSWORD definido en .env.prod>`
 
 ## 🚀 Comandos Rápidos
 
@@ -77,20 +77,20 @@ La aplicación se conecta automáticamente usando las variables en `.env`:
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=postgres123
+DB_PASSWORD=<DB_PASSWORD definido en tu .env>
 DB_DATABASE=sistema_encuestas
 ```
 
 ### Desde PgAdmin
 1. Abrir http://localhost:5050
-2. Login con `admin@admin.com` / `admin123`
+2. Login con `admin@admin.com` / `<PGADMIN_DEFAULT_PASSWORD definido en .env.prod>`
 3. Agregar nuevo servidor:
    - **Name**: Sistema Encuestas
    - **Host**: `host.docker.internal` (o `postgres` si está en Docker)
    - **Port**: `5432`
    - **Database**: `sistema_encuestas`
    - **Username**: `postgres`
-   - **Password**: `postgres123`
+   - **Password**: `<DB_PASSWORD definido en tu .env>`
 
 ### Desde CLI (psql)
 ```bash

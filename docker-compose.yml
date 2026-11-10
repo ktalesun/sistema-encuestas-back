@@ -33,7 +33,7 @@ services:
       - app-network
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8.14
     container_name: sistema-encuestas-pgadmin
     restart: unless-stopped
     env_file:
