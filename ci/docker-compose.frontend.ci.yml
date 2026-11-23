@@ -1,0 +1,11 @@
+# Override SOLO para Jenkins (frontend). Se une a la red que crea el compose del backend.
+services:
+  frontend:
+    image: encuesthik-web:${IMAGE_TAG:-ci}
+    container_name: ci-web
+    ports: !override []
+
+networks:
+  app-network:
+    name: ci-app-network
+    external: true

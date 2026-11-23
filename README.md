@@ -144,6 +144,51 @@ Las credenciales se definen en `.env` / `.env.prod`, que están en `.gitignore`.
 
 El workflow `.github/workflows/docker-build.yml` construye la imagen del backend en cada *push* y *pull request*.
 
+## 🔁 Integración continua con Jenkins
+
+Jenkins corre en un contenedor y gestiona la construcción y verificación de los dos servicios (backend y frontend). El pipeline se define en el [`Jenkinsfile`](./Jenkinsfile) de este repositorio.
+
+```
+commit -> GitHub -> Jenkins (Poll SCM) -> Build -> Test -> post (logs + limpieza)
+```
+
+### Levantar Jenkins
+
+```bash
+cd jenkins
+docker compose up -d --build
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword   # clave inicial
+```
+
+Interfaz: http://localhost:8080 (puertos 8080 y 50000). La configuración se conserva en el volumen `jenkins_home`; los plugins (Git, GitHub, Pipeline, Docker Pipeline, Credentials Binding, Stage View) se instalan desde `jenkins/plugins.txt`.
+
+### Credenciales (Manage Jenkins → Credentials; nunca en el código)
+
+| ID | Tipo | Contenido |
+|----|------|-----------|
+| `github-credentials` | Username with password | Usuario de GitHub y token de acceso |
+| `env-backend-prod` | Secret file | `.env.prod` del backend |
+| `env-frontend-prod` | Secret file | `.env.prod` del frontend |
+
+### Crear el job
+
+1. New Item → **Pipeline**.
+2. Pipeline → *Definition*: **Pipeline script from SCM** → Git → URL de este repositorio, credencial `github-credentials`, rama `*/main`, *Script Path*: `Jenkinsfile`.
+3. Build Triggers: **Poll SCM** (el `Jenkinsfile` ya declara `H/2 * * * *`).
+4. *Build Now* una vez para registrar los parámetros; desde entonces cada push dispara el pipeline.
+
+### Etapas
+
+| Etapa | Qué hace |
+|-------|----------|
+| Checkout | Clona backend y frontend y carga los `.env.prod` desde las credenciales |
+| Build | Construye las imágenes de los dos servicios, etiquetadas con el número de build |
+| Test - Unitarias | Ejecuta `pnpm test` (Jest) en un contenedor desechable |
+| Test - Comunicación | Levanta PostgreSQL + backend + frontend y ejecuta `ci/smoke-test.sh`, que verifica la comunicación por nombre de servicio (frontend → backend → postgres) |
+| post | Archiva los logs, baja los contenedores y borra los `.env.prod` del workspace |
+
+Los archivos de `ci/` ajustan nombres, puertos y red para que el pipeline no choque con el stack local de la Entrega 1. Si algún paso falla, el build falla.
+
 ## 🚀 Ejecución
 
 ```bash

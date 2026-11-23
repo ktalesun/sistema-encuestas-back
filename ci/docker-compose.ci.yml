@@ -1,0 +1,18 @@
+# Override SOLO para Jenkins (backend + postgres).
+# Evita choques con el stack local de la Entrega 1: otros nombres de contenedor, sin puertos
+# publicados, sin bind mounts (Jenkins corre en un contenedor y los paths del host no coinciden)
+# y una red propia. Requiere Docker Compose >= 2.24.4 por las etiquetas !override.
+services:
+  postgres:
+    container_name: ci-db
+    ports: !override []
+    volumes: !override
+      - postgres_data:/var/lib/postgresql/data
+  backend:
+    image: sistema-encuestas-api:${IMAGE_TAG:-ci}
+    container_name: ci-api
+    ports: !override []
+
+networks:
+  app-network:
+    name: ci-app-network
