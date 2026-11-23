@@ -581,6 +581,7 @@ Authorization: Bearer <token>
 - Sistema de notificaciones por email
 - Exportación de reportes con gráficos embebidos
 - API de webhooks para integraciones externas
+- Integración de una app movil para la gestión de encuestas.
 
 ## 👥 Autores
 
